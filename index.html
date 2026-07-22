@@ -1,0 +1,1475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>FinClause — Understand what you're signing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+:root{
+  --ink:#16293D;
+  --ink-soft:#2C4258;
+  --paper:#F6F4EF;
+  --paper-card:#FFFFFF;
+  --teal:#1F8A70;
+  --teal-soft:#E4F2EE;
+  --amber:#C8793B;
+  --amber-soft:#FBEBDD;
+  --slate:#5B6B79;
+  --line:#E2DFD6;
+  --danger:#B3432E;
+  --font-display:'Source Serif 4', serif;
+  --font-body:'Inter', sans-serif;
+  --font-mono:'IBM Plex Mono', monospace;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+body{
+  font-family: var(--font-body);
+  background: var(--paper);
+  color: var(--ink);
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+a{color:inherit;}
+button{font-family:inherit; cursor:pointer;}
+::selection{background: var(--teal-soft);}
+
+/* ---------- App shell ---------- */
+#app{display:flex; min-height:100vh;}
+.sidebar{
+  width:230px; flex-shrink:0; background:var(--ink); color:#fff;
+  display:flex; flex-direction:column; padding:28px 18px;
+  position:sticky; top:0; height:100vh;
+}
+.brand{
+  font-family:var(--font-display); font-size:24px; font-weight:700;
+  letter-spacing:.2px; margin-bottom:2px;
+}
+.brand small{display:block; font-family:var(--font-body); font-weight:400; font-size:11px; color:#9FB3C4; letter-spacing:.4px; margin-top:4px; text-transform:uppercase;}
+.nav{margin-top:36px; display:flex; flex-direction:column; gap:2px;}
+.nav-item{
+  display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:8px;
+  color:#C9D6DE; font-size:14px; font-weight:500; background:none; border:none; text-align:left; width:100%;
+  transition:background .15s, color .15s;
+}
+.nav-item svg{width:17px; height:17px; flex-shrink:0;}
+.nav-item:hover{background:rgba(255,255,255,.06); color:#fff;}
+.nav-item.active{background:var(--teal); color:#fff;}
+.sidebar-foot{margin-top:auto; padding-top:16px; border-top:1px solid rgba(255,255,255,.12);}
+.user-chip{display:flex; align-items:center; gap:10px; font-size:13px; color:#C9D6DE;}
+.user-avatar{width:28px; height:28px; border-radius:50%; background:var(--teal); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; color:#fff; flex-shrink:0;}
+.logout-btn{background:none; border:none; color:#9FB3C4; font-size:12px; margin-top:10px; text-decoration:underline; text-underline-offset:2px;}
+
+.main{flex:1; min-width:0; padding:34px 42px 60px; max-width:1180px;}
+.view{display:none;}
+.view.active{display:block; animation:fadeIn .25s ease;}
+@keyframes fadeIn{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:none;}}
+
+.page-head{margin-bottom:28px;}
+.eyebrow{font-size:11px; text-transform:uppercase; letter-spacing:1.2px; color:var(--teal); font-weight:600; margin-bottom:6px;}
+h1.page-title{font-family:var(--font-display); font-size:30px; font-weight:600; color:var(--ink);}
+.page-sub{color:var(--slate); font-size:14px; margin-top:6px; max-width:560px;}
+
+/* ---------- Cards / grid ---------- */
+.grid{display:grid; gap:20px;}
+.grid-2{grid-template-columns:1fr 1fr;}
+.grid-3{grid-template-columns:repeat(3,1fr);}
+.card{
+  background:var(--paper-card); border:1px solid var(--line); border-radius:12px; padding:22px;
+}
+.card-title{font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.6px; color:var(--slate); margin-bottom:14px; display:flex; align-items:center; justify-content:space-between;}
+
+/* ---------- Buttons ---------- */
+.btn{
+  display:inline-flex; align-items:center; gap:8px; padding:10px 18px; border-radius:8px; border:none;
+  font-size:14px; font-weight:600; transition:transform .1s, background .15s;
+}
+.btn:active{transform:scale(.97);}
+.btn-primary{background:var(--teal); color:#fff;}
+.btn-primary:hover{background:#1a765f;}
+.btn-ghost{background:transparent; color:var(--ink); border:1px solid var(--line);}
+.btn-ghost:hover{border-color:var(--ink);}
+.btn-sm{padding:6px 12px; font-size:12.5px;}
+.btn:disabled{opacity:.5; cursor:not-allowed;}
+
+/* ---------- Forms ---------- */
+label{font-size:12.5px; font-weight:600; color:var(--ink-soft); display:block; margin-bottom:6px;}
+input[type=text], input[type=email], input[type=password], input[type=number], textarea, select{
+  width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-size:14px;
+  font-family:inherit; background:#fff; color:var(--ink);
+}
+input:focus, textarea:focus, select:focus{outline:2px solid var(--teal); outline-offset:1px; border-color:var(--teal);}
+.field{margin-bottom:16px;}
+.field-row{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+
+/* ---------- Auth ---------- */
+.auth-wrap{
+  min-height:100vh; width:100%; display:flex; align-items:center; justify-content:center;
+  background: radial-gradient(1200px 700px at 15% -10%, #1D3650 0%, var(--ink) 60%);
+}
+.auth-card{width:400px; background:var(--paper-card); border-radius:16px; padding:38px 36px; box-shadow:0 30px 60px rgba(0,0,0,.35);}
+.auth-brand{font-family:var(--font-display); font-size:28px; font-weight:700; color:var(--ink); margin-bottom:4px;}
+.auth-tag{color:var(--slate); font-size:13.5px; margin-bottom:26px;}
+.auth-toggle{display:flex; gap:6px; margin-bottom:22px; background:var(--paper); padding:4px; border-radius:9px;}
+.auth-toggle button{flex:1; padding:8px; border:none; border-radius:6px; background:none; font-size:13px; font-weight:600; color:var(--slate);}
+.auth-toggle button.active{background:#fff; color:var(--ink); box-shadow:0 1px 3px rgba(0,0,0,.12);}
+.auth-note{font-size:11.5px; color:var(--slate); margin-top:16px; line-height:1.5; background:var(--teal-soft); padding:10px 12px; border-radius:8px;}
+
+/* ---------- Dashboard ---------- */
+.stat-num{font-family:var(--font-display); font-size:38px; font-weight:700; color:var(--ink);}
+.stat-label{font-size:12.5px; color:var(--slate); margin-top:2px;}
+.score-ring-wrap{display:flex; align-items:center; gap:18px;}
+.doc-row{display:flex; align-items:center; justify-content:space-between; padding:11px 0; border-bottom:1px solid var(--line);}
+.doc-row:last-child{border-bottom:none;}
+.doc-name{font-size:13.5px; font-weight:600; color:var(--ink);}
+.doc-meta{font-size:11.5px; color:var(--slate); margin-top:2px;}
+.status-chip{font-size:10.5px; font-weight:700; padding:3px 9px; border-radius:20px; text-transform:uppercase; letter-spacing:.3px;}
+.status-analyzed{background:var(--teal-soft); color:var(--teal);}
+.status-processing{background:#FDF3E3; color:var(--amber);}
+.status-failed{background:#FBEAE6; color:var(--danger);}
+.insight-item{display:flex; gap:10px; align-items:flex-start; padding:10px 0; border-bottom:1px solid var(--line); font-size:13px; color:var(--ink-soft); line-height:1.5;}
+.insight-item:last-child{border-bottom:none;}
+.insight-dot{width:6px; height:6px; border-radius:50%; background:var(--teal); margin-top:6px; flex-shrink:0;}
+.quick-actions{display:flex; gap:10px; flex-wrap:wrap; margin-top:6px;}
+
+/* ---------- Upload ---------- */
+.dropzone{
+  border:2px dashed var(--line); border-radius:14px; padding:50px 30px; text-align:center;
+  background:#fff; transition:border-color .15s, background .15s; cursor:pointer;
+}
+.dropzone.drag{border-color:var(--teal); background:var(--teal-soft);}
+.dropzone svg{width:36px; height:36px; color:var(--slate); margin-bottom:12px;}
+.dropzone p{font-size:14px; color:var(--ink-soft); font-weight:600;}
+.dropzone span{font-size:12px; color:var(--slate); display:block; margin-top:4px;}
+.progress-steps{display:flex; gap:0; margin-top:24px;}
+.pstep{flex:1; text-align:center; position:relative; font-size:11.5px; color:var(--slate); font-weight:600;}
+.pstep::before{content:''; display:block; width:12px; height:12px; border-radius:50%; background:var(--line); margin:0 auto 8px;}
+.pstep.done::before{background:var(--teal);}
+.pstep.active::before{background:var(--amber); box-shadow:0 0 0 4px var(--amber-soft);}
+.pstep::after{content:''; position:absolute; top:6px; left:-50%; width:100%; height:2px; background:var(--line); z-index:-1;}
+.pstep:first-child::after{display:none;}
+.pstep.done::after{background:var(--teal);}
+
+/* ---------- Analysis ---------- */
+.analysis-layout{display:grid; grid-template-columns:1.5fr 1fr; gap:24px; align-items:start;}
+.doc-select{margin-bottom:20px;}
+.expand-card{background:#fff; border:1px solid var(--line); border-radius:12px; margin-bottom:12px; overflow:hidden;}
+.expand-head{display:flex; align-items:center; justify-content:space-between; padding:15px 18px; cursor:pointer;}
+.expand-head-left{display:flex; align-items:center; gap:10px;}
+.expand-title{font-size:14.5px; font-weight:700; color:var(--ink);}
+.expand-count{font-size:11px; background:var(--paper); color:var(--slate); padding:2px 8px; border-radius:20px; font-weight:600;}
+.chevron{transition:transform .2s; color:var(--slate);}
+.expand-card.open .chevron{transform:rotate(180deg);}
+.expand-body{max-height:0; overflow:hidden; transition:max-height .25s ease;}
+.expand-card.open .expand-body{max-height:2000px;}
+.expand-body-inner{padding:0 18px 18px; font-size:13.5px; color:var(--ink-soft); line-height:1.65;}
+.margin-note{
+  display:flex; gap:10px; padding:10px 12px; border-radius:8px; background:var(--paper); margin-bottom:8px;
+  border-left:3px solid var(--teal); font-size:13px;
+}
+.margin-note.risk{border-left-color:var(--danger); background:#FBEEEC;}
+.margin-note.penalty{border-left-color:var(--amber); background:var(--amber-soft);}
+.margin-tag{font-size:10px; font-weight:700; text-transform:uppercase; color:var(--slate); white-space:nowrap; letter-spacing:.4px; padding-top:1px;}
+.clause-ref{font-family:var(--font-mono); font-size:11.5px; color:var(--teal); font-weight:600;}
+
+.fin-table{width:100%; border-collapse:collapse; font-size:13px;}
+.fin-table th{text-align:left; font-size:11px; text-transform:uppercase; color:var(--slate); letter-spacing:.4px; padding:8px 6px; border-bottom:1px solid var(--line);}
+.fin-table td{padding:10px 6px; border-bottom:1px solid var(--line); font-family:var(--font-mono);}
+.fin-table td.field{font-family:var(--font-body); font-weight:600; color:var(--ink);}
+.confidence{font-size:10px; padding:2px 7px; border-radius:20px; font-weight:700; text-transform:uppercase; font-family:var(--font-body);}
+.conf-high{background:var(--teal-soft); color:var(--teal);}
+.conf-medium{background:var(--amber-soft); color:var(--amber);}
+.conf-low, .conf-not_found{background:#EEE; color:var(--slate);}
+
+/* ---------- Finance dashboard ---------- */
+.score-badge{
+  width:112px; height:112px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-direction:column;
+  background:conic-gradient(var(--teal) calc(var(--pct,0)*1%), var(--line) 0);
+  position:relative;
+}
+.score-badge::before{content:''; position:absolute; inset:8px; background:#fff; border-radius:50%;}
+.score-badge span{position:relative; font-family:var(--font-display); font-size:28px; font-weight:700;}
+.score-badge small{position:relative; font-size:10px; color:var(--slate); font-weight:600;}
+.subfactor{margin-bottom:12px;}
+.subfactor-top{display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:5px;}
+.subfactor-top span:last-child{font-weight:700; font-family:var(--font-mono);}
+.bar-track{height:6px; background:var(--line); border-radius:4px; overflow:hidden;}
+.bar-fill{height:100%; background:var(--teal); border-radius:4px; transition:width .4s ease;}
+.reco-item{font-size:13px; padding:9px 12px; background:var(--teal-soft); border-radius:8px; margin-bottom:8px; color:var(--ink-soft);}
+
+.sim-slider-row{margin-bottom:18px;}
+.sim-top{display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px;}
+.sim-top b{font-family:var(--font-mono);}
+input[type=range]{width:100%; accent-color:var(--teal);}
+
+/* ---------- Chat ---------- */
+.chat-layout{display:grid; grid-template-columns:230px 1fr; gap:0; border:1px solid var(--line); border-radius:14px; overflow:hidden; background:#fff; height:calc(100vh - 210px); min-height:480px;}
+.chat-docs{border-right:1px solid var(--line); padding:14px; overflow-y:auto; background:var(--paper); min-height:0;}
+.chat-doc-item{padding:10px 12px; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; margin-bottom:4px; color:var(--ink-soft);}
+.chat-doc-item.active{background:var(--ink); color:#fff;}
+.chat-main{display:flex; flex-direction:column; min-width:0; min-height:0; height:100%; overflow:hidden;}
+.chat-msgs{flex:1 1 auto; min-height:0; overflow-y:auto; padding:22px 26px; display:flex; flex-direction:column; gap:16px;}
+.msg{max-width:78%; font-size:13.5px; line-height:1.6; padding:12px 15px; border-radius:12px;}
+.msg.user{align-self:flex-end; background:var(--ink); color:#fff; border-bottom-right-radius:3px;}
+.msg.assistant{align-self:flex-start; background:var(--paper); color:var(--ink); border-bottom-left-radius:3px;}
+.msg-cite{font-size:11px; margin-top:8px; color:var(--teal); font-weight:600; font-family:var(--font-mono);}
+.chat-input-bar{border-top:1px solid var(--line); padding:14px 18px; display:flex; gap:10px;}
+.chat-prompts{display:flex; gap:8px; padding:0 18px 12px; flex-wrap:wrap;}
+.chip{font-size:12px; padding:6px 12px; border-radius:20px; background:var(--paper); border:1px solid var(--line); color:var(--ink-soft); font-weight:500;}
+.chip:disabled{opacity:.45; cursor:not-allowed;}
+.chip:disabled:hover{border-color:var(--line); color:var(--ink-soft);}
+#chatInput:disabled{background:var(--paper); color:var(--slate);}
+.chip:hover{border-color:var(--teal); color:var(--teal);}
+
+/* ---------- History ---------- */
+.history-tabs{display:flex; gap:6px; margin-bottom:20px; border-bottom:1px solid var(--line);}
+.htab{padding:10px 4px; margin-right:22px; font-size:13.5px; font-weight:600; color:var(--slate); border-bottom:2px solid transparent; background:none; border-top:none; border-left:none; border-right:none;}
+.htab.active{color:var(--ink); border-bottom-color:var(--teal);}
+.hrow{display:flex; align-items:center; justify-content:space-between; padding:14px 0; border-bottom:1px solid var(--line);}
+
+/* ---------- Misc ---------- */
+.empty{text-align:center; padding:50px 20px; color:var(--slate);}
+.empty svg{width:34px; height:34px; margin-bottom:12px; opacity:.5;}
+.spinner{width:16px; height:16px; border:2px solid rgba(255,255,255,.4); border-top-color:#fff; border-radius:50%; animation:spin .7s linear infinite; display:inline-block;}
+.spinner.dark{border:2px solid rgba(0,0,0,.15); border-top-color:var(--ink);}
+@keyframes spin{to{transform:rotate(360deg);}}
+.toast{position:fixed; bottom:24px; right:24px; background:var(--ink); color:#fff; padding:12px 18px; border-radius:10px; font-size:13.5px; box-shadow:0 10px 30px rgba(0,0,0,.25); z-index:999; animation:slideUp .2s ease;}
+@keyframes slideUp{from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:none;}}
+select{appearance:auto;}
+.report-check{display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--line); font-size:13.5px;}
+.report-check:last-child{border-bottom:none;}
+@media (max-width: 900px){
+  .sidebar{display:none;}
+  .main{padding:24px;}
+  .grid-2, .grid-3, .analysis-layout, .chat-layout{grid-template-columns:1fr;}
+}
+
+/* ---------- Responsive app shell ---------- */
+.mobile-topbar{display:none;}
+@media (max-width: 960px){
+  #app{display:block;}
+  .mobile-topbar{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    background:var(--ink); color:#fff; padding:14px 18px; position:sticky; top:0; z-index:60;
+  }
+  .mobile-topbar .brand{font-size:19px; margin:0;}
+  .mobile-topbar .brand small{display:none;}
+  .hamburger{background:none; border:none; color:#fff; padding:6px; display:flex;}
+  .hamburger svg{width:24px; height:24px;}
+  .sidebar{
+    display:flex; position:fixed; top:0; left:0; height:100vh; width:250px; z-index:70;
+    transform:translateX(-105%); transition:transform .22s ease; box-shadow:0 0 40px rgba(0,0,0,.35);
+  }
+  .sidebar.open{transform:translateX(0);}
+  .sidebar-scrim{display:none; position:fixed; inset:0; background:rgba(10,18,26,.5); z-index:65;}
+  .sidebar-scrim.show{display:block;}
+  .main{max-width:100%; padding:20px 16px 50px;}
+}
+@media (min-width: 961px){
+  .sidebar-scrim{display:none !important;}
+}
+
+/* Grid / layout collapse at tablet and phone widths */
+@media (max-width: 860px){
+  .grid-2, .grid-3, .analysis-layout{grid-template-columns:1fr;}
+  .field-row{grid-template-columns:1fr;}
+}
+@media (max-width: 640px){
+  h1.page-title{font-size:24px;}
+  .card{padding:16px;}
+  .score-ring-wrap{flex-direction:column; align-items:flex-start; gap:12px;}
+  .auth-card{width:92vw; padding:28px 22px;}
+  .chat-layout{grid-template-columns:1fr; height:auto;}
+  .chat-docs{
+    border-right:none; border-bottom:1px solid var(--line); display:flex; gap:6px; overflow-x:auto;
+    white-space:nowrap; padding:10px;
+  }
+  .chat-doc-item{flex-shrink:0; margin-bottom:0;}
+  .chat-msgs{min-height:320px; max-height:50vh;}
+  .msg{max-width:92%;}
+  .quick-actions .btn{flex:1 1 45%;}
+}
+/* Financial data table scrolls horizontally instead of squeezing on small screens */
+.fin-table-wrap{width:100%; overflow-x:auto;}
+
+</style>
+</head>
+<body>
+
+<div id="authScreen" class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-brand">FinClause</div>
+    <div class="auth-tag">Understand what you're signing — and what it costs you.</div>
+    <div class="auth-toggle">
+      <button id="tabLogin" class="active" onclick="setAuthMode('login')">Log in</button>
+      <button id="tabRegister" onclick="setAuthMode('register')">Sign up</button>
+    </div>
+    <div id="registerFields" style="display:none;">
+      <div class="field"><label>Full name</label><input type="text" id="regName" placeholder="Jordan Blake" /></div>
+    </div>
+    <div class="field"><label>Email</label><input type="email" id="authEmail" placeholder="you@example.com" /></div>
+    <div class="field"><label>Password</label><input type="password" id="authPassword" placeholder="••••••••" /></div>
+    <div id="authError" style="display:none; background:#FBEAE6; color:var(--danger); border:1px solid #F0C7BE; font-size:12.5px; font-weight:600; padding:9px 12px; border-radius:8px; margin-bottom:14px;"></div>
+    <button class="btn btn-primary" style="width:100%; justify-content:center;" onclick="handleAuth()" id="authSubmitBtn">Log in</button>
+    <div class="auth-note">Running locally: accounts are stored in your own backend's local database (hashed passwords, JWT sessions). Data stays on your machine.</div>
+  </div>
+</div>
+
+<div id="app" style="display:none;">
+  <div class="mobile-topbar">
+    <button class="hamburger" onclick="toggleSidebar(true)" aria-label="Open menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+    <div class="brand" style="font-family:var(--font-display);">FinClause</div>
+    <div style="width:24px;"></div>
+  </div>
+  <div class="sidebar-scrim" id="sidebarScrim" onclick="toggleSidebar(false)"></div>
+  <div class="sidebar" id="sidebarEl">
+    <div class="brand">FinClause<small>Legal + Finance AI</small></div>
+    <div class="nav">
+      <button class="nav-item active" data-view="dashboard" onclick="navigate('dashboard')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+        Dashboard
+      </button>
+      <button class="nav-item" data-view="upload" onclick="navigate('upload')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M5 21h14"/></svg>
+        Upload
+      </button>
+      <button class="nav-item" data-view="analysis" onclick="navigate('analysis')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h6"/></svg>
+        Analysis
+      </button>
+      <button class="nav-item" data-view="finance" onclick="navigate('finance')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+        Finances
+      </button>
+      <button class="nav-item" data-view="chat" onclick="navigate('chat')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Ask AI
+      </button>
+      <button class="nav-item" data-view="history" onclick="navigate('history')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l4 2"/></svg>
+        History
+      </button>
+    </div>
+    <div class="sidebar-foot">
+      <div class="user-chip"><div class="user-avatar" id="userAvatar">J</div><span id="userName">—</span></div>
+      <button class="logout-btn" onclick="logout()">Log out</button>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <!-- DASHBOARD -->
+    <div class="view" id="view-dashboard">
+      <div class="page-head">
+        <div class="eyebrow">Overview</div>
+        <h1 class="page-title" id="dashGreeting">Welcome back</h1>
+        <div class="page-sub">Your documents, budget, and financial health at a glance.</div>
+      </div>
+      <div class="grid grid-3" style="margin-bottom:20px;">
+        <div class="card">
+          <div class="card-title">Financial Health Score</div>
+          <div class="score-ring-wrap">
+            <div class="score-badge" id="dashScoreBadge" style="--pct:0;"><span id="dashScoreNum">—</span><small>/ 100</small></div>
+            <div>
+              <div id="dashScoreTrend" style="font-size:12.5px; color:var(--slate);">No budget yet</div>
+              <button class="btn btn-ghost btn-sm" style="margin-top:8px;" onclick="navigate('finance')">View breakdown</button>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Budget Overview</div>
+          <div class="stat-num" id="dashRemaining">$0</div>
+          <div class="stat-label">Remaining balance / month</div>
+          <div class="quick-actions"><button class="btn btn-ghost btn-sm" onclick="navigate('finance')">Open budget planner</button></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Quick Actions</div>
+          <div class="quick-actions">
+            <button class="btn btn-primary btn-sm" onclick="navigate('upload')">Upload document</button>
+            <button class="btn btn-ghost btn-sm" onclick="navigate('finance')">Start budget</button>
+            <button class="btn btn-ghost btn-sm" onclick="navigate('chat')">Ask AI</button>
+            <button class="btn btn-ghost btn-sm" onclick="navigate('history')">Generate report</button>
+          </div>
+        </div>
+      </div>
+      <div class="grid grid-2">
+        <div class="card">
+          <div class="card-title">Recent Documents</div>
+          <div id="dashDocs"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">AI Insights</div>
+          <div id="dashInsights"></div>
+        </div>
+      </div>
+      <div class="grid" style="margin-top:20px;">
+        <div class="card">
+          <div class="card-title">Recent Chats</div>
+          <div id="dashChats"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- UPLOAD -->
+    <div class="view" id="view-upload">
+      <div class="page-head">
+        <div class="eyebrow">Step 1</div>
+        <h1 class="page-title">Upload a document</h1>
+        <div class="page-sub">PDF, DOCX, or TXT. Your file is parsed locally in the browser, then sent to the AI for legal + financial analysis.</div>
+      </div>
+      <div class="card">
+        <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M5 21h14"/></svg>
+          <p>Drag & drop your file here, or click to browse</p>
+          <span>Supports .pdf, .docx, .txt — up to 20MB</span>
+        </div>
+        <input type="file" id="fileInput" accept=".pdf,.docx,.txt" style="display:none" onchange="handleFileSelect(event)" />
+        <div style="text-align:center; margin:14px 0; color:var(--slate); font-size:12px;">— or paste text directly —</div>
+        <textarea id="pasteText" rows="4" placeholder="Paste the contents of a legal or financial document here..."></textarea>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px;">
+          <input type="text" id="docNameInput" placeholder="Document name (e.g. Riverside Lease Agreement)" style="max-width:340px;" />
+          <button class="btn btn-primary" onclick="startAnalysis()" id="analyzeBtn">Analyze document</button>
+        </div>
+        <div id="uploadStatus" style="display:none; margin-top:22px;">
+          <div class="progress-steps">
+            <div class="pstep" id="pstep-0">Queued</div>
+            <div class="pstep" id="pstep-1">Extracting</div>
+            <div class="pstep" id="pstep-2">Analyzing</div>
+            <div class="pstep" id="pstep-3">Complete</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ANALYSIS -->
+    <div class="view" id="view-analysis">
+      <div class="page-head">
+        <div class="eyebrow">AI Legal Simplifier</div>
+        <h1 class="page-title">Document analysis</h1>
+        <div class="page-sub">Plain-English breakdown of clauses, obligations, risks, and deadlines — with financial figures extracted alongside.</div>
+      </div>
+      <div class="doc-select">
+        <select id="analysisDocSelect" onchange="renderAnalysis()"></select>
+      </div>
+      <div id="analysisEmpty" class="empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+        <div>No analyzed documents yet. Upload one to get started.</div>
+        <button class="btn btn-primary" style="margin-top:14px;" onclick="navigate('upload')">Upload a document</button>
+      </div>
+      <div class="analysis-layout" id="analysisLayout" style="display:none;">
+        <div id="analysisCards"></div>
+        <div>
+          <div class="card" style="margin-bottom:16px;">
+            <div class="card-title">Financial Data Extracted</div>
+            <div class="fin-table-wrap"><table class="fin-table" id="finTable"></table></div>
+          </div>
+          <button class="btn btn-primary" style="width:100%; justify-content:center;" onclick="sendToBudget()">Use in Budget Planner →</button>
+          <button class="btn btn-ghost" style="width:100%; justify-content:center; margin-top:10px;" onclick="navigate('chat')">Ask AI about this document</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- FINANCE -->
+    <div class="view" id="view-finance">
+      <div class="page-head">
+        <div class="eyebrow">Financial Engine</div>
+        <h1 class="page-title">Budget & Financial Health</h1>
+        <div class="page-sub">Model your monthly cash flow and see how a document's terms affect your financial health score.</div>
+      </div>
+      <div class="grid grid-2" style="align-items:start;">
+        <div class="card">
+          <div class="card-title">Budget Planner</div>
+          <div class="field"><label>Monthly income</label><input type="number" id="incIncome" value="5000" oninput="recalcBudget()" /></div>
+          <div class="field-row">
+            <div class="field"><label>Housing (rent/EMI)</label><input type="number" id="expHousing" value="1500" oninput="recalcBudget()" /></div>
+            <div class="field"><label>Debt payments</label><input type="number" id="expDebt" value="300" oninput="recalcBudget()" /></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Living expenses</label><input type="number" id="expLiving" value="1200" oninput="recalcBudget()" /></div>
+            <div class="field"><label>Other / discretionary</label><input type="number" id="expOther" value="400" oninput="recalcBudget()" /></div>
+          </div>
+          <div class="field"><label>Savings goal (monthly)</label><input type="number" id="savingsGoal" value="500" oninput="recalcBudget()" /></div>
+          <div class="field"><label>Emergency fund on hand</label><input type="number" id="emergencyFund" value="3000" oninput="recalcBudget()" /></div>
+          <button class="btn btn-primary" onclick="saveBudget()" style="width:100%; justify-content:center; margin-top:6px;">Save budget & get AI recommendations</button>
+        </div>
+        <div class="card">
+          <div class="card-title">Spending Breakdown</div>
+          <canvas id="spendChart" height="200"></canvas>
+          <div style="display:flex; justify-content:space-between; margin-top:16px; padding-top:14px; border-top:1px solid var(--line);">
+            <div><div class="stat-label">Remaining balance</div><div class="stat-num" id="remainBalance" style="font-size:24px;">$0</div></div>
+            <div><div class="stat-label">Savings rate</div><div class="stat-num" id="savingsRate" style="font-size:24px;">0%</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-2" style="margin-top:20px; align-items:start;">
+        <div class="card">
+          <div class="card-title">Financial Health Score</div>
+          <div class="score-ring-wrap" style="margin-bottom:18px;">
+            <div class="score-badge" id="financeScoreBadge" style="--pct:0;"><span id="financeScoreNum">—</span><small>/ 100</small></div>
+            <div id="scoreRecos" style="flex:1;"></div>
+          </div>
+          <div id="subfactors"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Financial Simulator — what if?</div>
+          <div class="sim-slider-row">
+            <div class="sim-top"><span>Rent / EMI</span><b id="simRentVal">$1500</b></div>
+            <input type="range" id="simRent" min="0" max="8000" step="50" value="1500" oninput="runSimulator()" />
+          </div>
+          <div class="sim-slider-row">
+            <div class="sim-top"><span>Salary</span><b id="simSalaryVal">$5000</b></div>
+            <input type="range" id="simSalary" min="0" max="30000" step="250" value="5000" oninput="runSimulator()" />
+          </div>
+          <div class="sim-slider-row">
+            <div class="sim-top"><span>Other expenses</span><b id="simExpVal">$1900</b></div>
+            <input type="range" id="simExp" min="0" max="12000" step="50" value="1900" oninput="runSimulator()" />
+          </div>
+          <div style="background:var(--paper); border-radius:10px; padding:14px; margin-top:6px;">
+            <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:8px;"><span>Simulated remaining balance</span><b id="simRemain" style="font-family:var(--font-mono);">$0</b></div>
+            <div style="display:flex; justify-content:space-between; font-size:13px;"><span>Simulated health score</span><b id="simScore" style="font-family:var(--font-mono);">0</b></div>
+          </div>
+          <div style="font-size:11.5px; color:var(--slate); margin-top:8px;">Score also factors in your emergency fund of <b id="simEmergencyRef" style="font-family:var(--font-mono);">$0</b> (set in the Budget Planner above).</div>
+          <button class="btn btn-ghost" style="width:100%; justify-content:center; margin-top:12px;" onclick="saveSimAsBudget()">Save this scenario as a new budget</button>
+        </div>
+      </div>
+
+      <div class="grid" style="margin-top:20px;">
+        <div class="card">
+          <div class="card-title">Investment & Budget Strategy Advisor</div>
+          <div style="font-size:13px; color:var(--slate); margin-bottom:16px; line-height:1.5;">
+            Get a general strategy breakdown based on your saved budget — how to allocate income, prioritize debt vs. saving, and think about investing by risk tolerance. This is educational guidance, not personalized licensed financial advice.
+          </div>
+          <div class="field-row" style="align-items:end;">
+            <div class="field" style="margin-bottom:0;">
+              <label>Risk tolerance</label>
+              <select id="riskTolerance">
+                <option value="conservative">Conservative — protect capital, minimize volatility</option>
+                <option value="moderate" selected>Moderate — balanced growth and stability</option>
+                <option value="aggressive">Aggressive — growth-focused, comfortable with volatility</option>
+              </select>
+            </div>
+            <div class="field" style="margin-bottom:0;">
+              <label>Investing time horizon</label>
+              <select id="investHorizon">
+                <option value="short">Short-term (under 3 years)</option>
+                <option value="medium" selected>Medium-term (3–10 years)</option>
+                <option value="long">Long-term (10+ years)</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn btn-primary" style="margin-top:16px;" onclick="getInvestmentAdvice()" id="adviceBtn">Get advisor guidance</button>
+
+          <div id="adviceOutput" style="display:none; margin-top:22px;">
+            <div style="background:var(--teal-soft); border:1px solid #CFE8E0; color:#1a6350; font-size:12.5px; font-weight:500; padding:10px 14px; border-radius:8px; margin-bottom:18px; line-height:1.5;">
+              💬 Just a friendly heads up — these are general ideas to explore, not personalized advice tailored to your full financial picture. Worth a chat with a licensed advisor before you act on anything investment-related.
+            </div>
+            <h3 style="font-size:14px; font-weight:700; color:var(--ink); margin-bottom:10px;">Budget Strategy</h3>
+            <div id="adviceBudget" style="margin-bottom:20px;"></div>
+            <h3 style="font-size:14px; font-weight:700; color:var(--ink); margin-bottom:10px;">Investment Concepts to Consider</h3>
+            <div id="adviceInvest" style="margin-bottom:20px;"></div>
+            <h3 style="font-size:14px; font-weight:700; color:var(--ink); margin-bottom:10px;">Action Steps</h3>
+            <div id="adviceSteps"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHAT -->
+    <div class="view" id="view-chat">
+      <div class="page-head">
+        <div class="eyebrow">AI Chat Assistant</div>
+        <h1 class="page-title">Ask about your documents</h1>
+        <div class="page-sub">Answers are grounded in the document you select — with clause citations where relevant.</div>
+      </div>
+      <div class="chat-layout">
+        <div class="chat-docs" id="chatDocList"></div>
+        <div class="chat-main">
+          <div class="chat-msgs" id="chatMsgs"></div>
+          <div class="chat-prompts" id="chatPrompts"></div>
+          <div class="chat-input-bar">
+            <input type="text" id="chatInput" placeholder="Ask a question about this document..." onkeydown="if(event.key==='Enter') sendChat()" />
+            <button class="btn btn-primary" onclick="sendChat()" id="chatSendBtn">Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HISTORY -->
+    <div class="view" id="view-history">
+      <div class="page-head">
+        <div class="eyebrow">Archive</div>
+        <h1 class="page-title">History</h1>
+        <div class="page-sub">Every upload, analysis, budget, chat, and report — all in one place.</div>
+      </div>
+      <div class="history-tabs">
+        <button class="htab active" data-tab="docs" onclick="setHistoryTab('docs')">Documents</button>
+        <button class="htab" data-tab="budgets" onclick="setHistoryTab('budgets')">Budgets</button>
+        <button class="htab" data-tab="chats" onclick="setHistoryTab('chats')">Chats</button>
+        <button class="htab" data-tab="reports" onclick="setHistoryTab('reports')">Reports</button>
+      </div>
+      <div class="card" id="historyBody"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* =====================================================================
+   STATE
+===================================================================== */
+let CURRENT_USER = null;
+let STATE = { documents: [], budgets: [], chats: {}, reports: [] };
+let activeChatDocId = null;
+let historyTab = 'docs';
+
+window.addEventListener('error', (e)=>{
+  console.error('Uncaught error:', e.error || e.message);
+  try{ toast('Unexpected error: ' + (e.message || 'see console for details')); }catch(_){}
+});
+window.addEventListener('unhandledrejection', (e)=>{
+  console.error('Unhandled rejection:', e.reason);
+  try{ toast('Unexpected error: ' + (e.reason && e.reason.message ? e.reason.message : 'see console for details')); }catch(_){}
+});
+
+const FIELD_LABELS = {salary:'Salary', rent:'Rent', loan_amount:'Loan Amount', emi:'EMI', interest_rate:'Interest Rate', deposit:'Deposit', bonus:'Bonus', taxes:'Taxes', penalties:'Penalties', fees:'Fees'};
+function formatFinValue(field_name, value){
+  if(value == null) return null;
+  if(field_name === 'interest_rate') return Number(value).toLocaleString(undefined,{maximumFractionDigits:2}) + '%';
+  return fmt$(value);
+}
+
+/* =====================================================================
+   BACKEND CONNECTION
+   This app now talks to your local Node backend (server.js) instead of
+   the Claude.ai artifact storage/AI APIs. authToken is a JWT issued by
+   the backend on login/register and sent with every protected request.
+===================================================================== */
+let authToken = null;
+function authHeaders(){ return authToken ? { 'Authorization': 'Bearer ' + authToken } : {}; }
+
+async function loadState(){
+  try{
+    const res = await fetch('/api/state', { headers: authHeaders() });
+    if(res.ok){ STATE = await res.json(); }
+    else { STATE = { documents: [], budgets: [], chats: {}, reports: [] }; }
+  }catch(e){ STATE = { documents: [], budgets: [], chats: {}, reports: [] }; }
+  if(!STATE.documents) STATE.documents = [];
+  if(!STATE.budgets) STATE.budgets = [];
+  if(!STATE.chats) STATE.chats = {};
+  if(!STATE.reports) STATE.reports = [];
+}
+async function saveState(){
+  try{
+    const res = await fetch('/api/state', {
+      method:'PUT',
+      headers: { 'Content-Type':'application/json', ...authHeaders() },
+      body: JSON.stringify(STATE)
+    });
+    if(!res.ok) throw new Error('Server rejected the save (HTTP ' + res.status + ').');
+  }catch(e){ console.error('state save failed', e); toast('Could not save — your changes may not persist.'); }
+}
+function uid(){ return Math.random().toString(36).slice(2,10) + Date.now().toString(36); }
+function fmt$(n){ n = Number(n)||0; const sign = n<0 ? '-' : ''; return sign + '$' + Math.abs(n).toLocaleString(undefined,{maximumFractionDigits:0}); }
+function toast(msg){
+  const t = document.createElement('div'); t.className='toast'; t.textContent=msg;
+  document.body.appendChild(t); setTimeout(()=>t.remove(), 3200);
+}
+
+/* =====================================================================
+   AUTH (demo-only, local persistent storage)
+===================================================================== */
+let authMode = 'login';
+function setAuthMode(mode){
+  authMode = mode;
+  document.getElementById('tabLogin').classList.toggle('active', mode==='login');
+  document.getElementById('tabRegister').classList.toggle('active', mode==='register');
+  document.getElementById('registerFields').style.display = mode==='register' ? 'block' : 'none';
+  document.getElementById('authSubmitBtn').textContent = mode==='register' ? 'Create account' : 'Log in';
+  hideAuthError();
+}
+function showAuthError(msg){
+  const el = document.getElementById('authError');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+function hideAuthError(){
+  const el = document.getElementById('authError');
+  el.style.display = 'none';
+  el.textContent = '';
+}
+async function handleAuth(){
+  hideAuthError();
+  const email = document.getElementById('authEmail').value.trim();
+  const pass = document.getElementById('authPassword').value;
+  const name = document.getElementById('regName').value.trim();
+  if(!email || !pass){ showAuthError('Enter an email and password.'); return; }
+  const btn = document.getElementById('authSubmitBtn');
+  const originalLabel = authMode === 'register' ? 'Create account' : 'Log in';
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
+  try{
+    const endpoint = authMode === 'register' ? '/api/auth/register' : '/api/auth/login';
+    const body = authMode === 'register'
+      ? { name: name || email.split('@')[0], email, password: pass }
+      : { email, password: pass };
+    const res = await fetch(endpoint, {
+      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if(!res.ok){ showAuthError(data.error || 'Something went wrong.'); return; }
+
+    authToken = data.token;
+    localStorage.setItem('finclause_token', authToken);
+    localStorage.setItem('finclause_user', JSON.stringify(data.user));
+    CURRENT_USER = data.user;
+    await loadState();
+    enterApp();
+  } catch(err){
+    console.error(err);
+    showAuthError('Could not reach the server. Is it running? (' + (err && err.message ? err.message : 'unknown error') + ')');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalLabel;
+  }
+}
+function enterApp(){
+  document.getElementById('userName').textContent = CURRENT_USER.name;
+  document.getElementById('userAvatar').textContent = CURRENT_USER.name.charAt(0).toUpperCase();
+  document.getElementById('authScreen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  navigate('dashboard');
+  document.getElementById('dashGreeting').textContent = 'Welcome back, ' + CURRENT_USER.name.split(' ')[0];
+}
+async function tryAutoLogin(){
+  const savedToken = localStorage.getItem('finclause_token');
+  const savedUser = localStorage.getItem('finclause_user');
+  if(!savedToken || !savedUser) return;
+  authToken = savedToken;
+  try{ CURRENT_USER = JSON.parse(savedUser); } catch(e){ return; }
+  const res = await fetch('/api/state', { headers: authHeaders() });
+  if(!res.ok){ authToken = null; CURRENT_USER = null; localStorage.removeItem('finclause_token'); localStorage.removeItem('finclause_user'); return; }
+  STATE = await res.json();
+  if(!STATE.documents) STATE.documents = [];
+  if(!STATE.budgets) STATE.budgets = [];
+  if(!STATE.chats) STATE.chats = {};
+  if(!STATE.reports) STATE.reports = [];
+  enterApp();
+}
+function logout(){
+  CURRENT_USER = null;
+  authToken = null;
+  localStorage.removeItem('finclause_token');
+  localStorage.removeItem('finclause_user');
+  financeInputsInitialized = false;
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('authScreen').style.display = 'flex';
+  document.getElementById('authEmail').value=''; document.getElementById('authPassword').value='';
+  hideAuthError();
+}
+
+/* =====================================================================
+   NAVIGATION
+===================================================================== */
+function toggleSidebar(open){
+  document.getElementById('sidebarEl').classList.toggle('open', open);
+  document.getElementById('sidebarScrim').classList.toggle('show', open);
+}
+function navigate(view){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-' + view).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active', n.dataset.view===view));
+  toggleSidebar(false);
+  if(view === 'dashboard') renderDashboard();
+  if(view === 'analysis') renderAnalysis();
+  if(view === 'finance') renderFinance();
+  if(view === 'chat') renderChat();
+  if(view === 'history') renderHistory();
+}
+function renderAll(){ renderDashboard(); renderAnalysis(); renderFinance(); renderChat(); renderHistory(); }
+
+/* =====================================================================
+   CLAUDE API HELPER
+===================================================================== */
+async function callClaude(systemPrompt, userContent, {json=false, maxTokens=4096} = {}){
+  let res;
+  try{
+    res = await fetch('/api/ai/complete', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json', ...authHeaders()},
+      body: JSON.stringify({ system: systemPrompt, prompt: userContent, maxTokens })
+    });
+  }catch(networkErr){
+    throw new Error('Could not reach the local server. Is it running? (npm start)');
+  }
+  let data;
+  try{ data = await res.json(); }
+  catch(parseErr){ throw new Error('Server returned an unexpected response (HTTP ' + res.status + ').'); }
+  if(!res.ok || data.error) throw new Error(data.error || 'AI request failed');
+  const stopReason = data.stop_reason;
+  const text = data.text || '';
+  if(!text.trim()) throw new Error('AI service returned an empty response.');
+  if(json){
+    let clean = text.replace(/```json|```/g,'').trim();
+    try{ return JSON.parse(clean); }
+    catch(e){
+      // try to salvage by trimming to the outermost matching brackets
+      const firstBrace = clean.search(/[\{\[]/);
+      const lastBrace = Math.max(clean.lastIndexOf('}'), clean.lastIndexOf(']'));
+      if(firstBrace>-1 && lastBrace>-1){
+        try{ return JSON.parse(clean.slice(firstBrace, lastBrace+1)); }catch(e2){}
+      }
+      if(stopReason === 'max_tokens'){
+        throw new Error('AI response was cut off before completing (document may be too long/complex). Try again or shorten the document.');
+      }
+      throw new Error('Could not parse the AI response as JSON.');
+    }
+  }
+  return text;
+}
+
+/* =====================================================================
+   FILE PARSING
+===================================================================== */
+async function extractFileText(file){
+  const ext = file.name.split('.').pop().toLowerCase();
+  if(ext === 'txt'){
+    return await file.text();
+  } else if(ext === 'docx'){
+    const buf = await file.arrayBuffer();
+    const result = await mammoth.extractRawText({ arrayBuffer: buf });
+    return result.value;
+  } else if(ext === 'pdf'){
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    const buf = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+    let text = '';
+    for(let i=1;i<=pdf.numPages;i++){
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      text += content.items.map(it=>it.str).join(' ') + '\n';
+    }
+    return text;
+  }
+  throw new Error('Unsupported file type: ' + ext);
+}
+
+/* =====================================================================
+   UPLOAD + ANALYSIS FLOW
+===================================================================== */
+let pendingFile = null;
+let pendingText = '';
+
+document.addEventListener('DOMContentLoaded', ()=>{
+  tryAutoLogin();
+  const dz = document.getElementById('dropzone');
+  dz.addEventListener('dragover', e=>{ e.preventDefault(); dz.classList.add('drag'); });
+  dz.addEventListener('dragleave', ()=> dz.classList.remove('drag'));
+  dz.addEventListener('drop', e=>{
+    e.preventDefault(); dz.classList.remove('drag');
+    if(e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+  });
+});
+function handleFileSelect(e){ if(e.target.files.length) handleFile(e.target.files[0]); }
+function handleFile(file){
+  if(file.size > 20*1024*1024){ toast('File exceeds the 20MB limit.'); return; }
+  const ext = file.name.split('.').pop().toLowerCase();
+  if(!['pdf','docx','txt'].includes(ext)){ toast('Unsupported file type. Use PDF, DOCX, or TXT.'); return; }
+  pendingFile = file;
+  document.getElementById('docNameInput').value = file.name.replace(/\.[^.]+$/, '');
+  document.querySelector('#dropzone p').textContent = '📄 ' + file.name;
+  toast('File ready — click "Analyze document" to continue.');
+}
+
+function setStep(i){
+  for(let s=0;s<4;s++){
+    const el = document.getElementById('pstep-'+s);
+    el.classList.remove('active','done');
+    if(s < i) el.classList.add('done');
+    if(s === i) el.classList.add('active');
+  }
+}
+
+async function runAnalysisPipeline(docRecord, text){
+  setStep(2);
+  const results = await Promise.allSettled([
+    callClaude(
+      "You are a legal-document simplification assistant. Given the full text of a legal document, return ONLY a JSON object with keys: summary (string, 150-300 words, plain English), clauses (array of {reference, title, plain_text}), obligations (array of strings), risks (array of {clause_ref, risk_description, severity}), deadlines (array of {description, date_or_offset}), penalties (array of {trigger, amount_or_terms}), key_takeaways (array of 3-5 strings). Keep each plain_text/description concise (1-2 sentences) so the full response fits within the token limit. Do not include any text outside the JSON object. Do not invent clauses that are not present in the source text.",
+      text, { json:true, maxTokens:4096 }
+    ),
+    callClaude(
+      "Extract financial figures from the following document. Return ONLY a JSON array of objects with keys: field_name (one of salary, rent, loan_amount, emi, interest_rate, deposit, bonus, taxes, penalties, fees), value (number or null), confidence (high|medium|low|not_found). Include every field even if not_found. Never fabricate a numeric value not supported by the text.",
+      text, { json:true, maxTokens:1500 }
+    )
+  ]);
+
+  const [analysisResult, financialsResult] = results;
+  const errors = [];
+
+  if(analysisResult.status === 'fulfilled'){
+    docRecord.analysis = analysisResult.value;
+  } else {
+    errors.push('Legal analysis: ' + analysisResult.reason.message);
+    docRecord.analysis = { summary:'Legal analysis could not be completed: ' + analysisResult.reason.message, clauses:[], obligations:[], risks:[], deadlines:[], penalties:[], key_takeaways:[] };
+  }
+
+  if(financialsResult.status === 'fulfilled'){
+    docRecord.financials = Array.isArray(financialsResult.value) ? financialsResult.value : [];
+  } else {
+    errors.push('Financial extraction: ' + financialsResult.reason.message);
+    docRecord.financials = [];
+  }
+
+  // The document is usable as long as at least one pipeline succeeded.
+  if(analysisResult.status === 'rejected' && financialsResult.status === 'rejected'){
+    throw new Error(errors.join(' | '));
+  }
+  docRecord.warning = errors.length ? errors.join(' | ') : null;
+  docRecord.status = 'analyzed';
+}
+
+async function startAnalysis(){
+  const name = document.getElementById('docNameInput').value.trim() || 'Untitled Document';
+  const pasted = document.getElementById('pasteText').value.trim();
+  if(!pendingFile && !pasted){ toast('Upload a file or paste document text first.'); return; }
+
+  const statusBox = document.getElementById('uploadStatus');
+  statusBox.style.display = 'block';
+  const btn = document.getElementById('analyzeBtn');
+  btn.disabled = true;
+  setStep(0);
+
+  const docId = uid();
+  const docRecord = { id: docId, name, status:'processing', uploadedAt: new Date().toISOString(), fileType: pendingFile ? pendingFile.name.split('.').pop().toLowerCase() : 'txt' };
+  STATE.documents.unshift(docRecord);
+  await saveState();
+
+  try{
+    setStep(1);
+    let text = pasted;
+    if(pendingFile) text = await extractFileText(pendingFile);
+    if(!text || text.trim().length < 20) throw new Error('Could not extract meaningful text from this document.');
+    text = text.slice(0, 18000); // guard prompt size
+    docRecord.text = text;
+
+    await runAnalysisPipeline(docRecord, text);
+
+    setStep(3);
+    await saveState();
+    if(docRecord.warning){ toast('Analysis mostly complete for "' + name + '" — one part had an issue (see History for details).'); }
+    else { toast('Analysis complete for "' + name + '".'); }
+    setTimeout(()=>{
+      document.getElementById('docNameInput').value=''; document.getElementById('pasteText').value='';
+      document.querySelector('#dropzone p').textContent = "Drag & drop your file here, or click to browse";
+      pendingFile = null;
+      statusBox.style.display='none'; btn.disabled=false;
+      navigate('analysis');
+    }, 700);
+  }catch(err){
+    docRecord.status = 'failed';
+    docRecord.error = err.message;
+    await saveState();
+    toast('Analysis failed: ' + err.message);
+    btn.disabled = false;
+  }
+  renderDashboard();
+}
+
+async function retryAnalysis(docId){
+  const docRecord = STATE.documents.find(d=>d.id===docId);
+  if(!docRecord || !docRecord.text){ toast('Original document text is not available — please re-upload.'); return; }
+  docRecord.status = 'processing';
+  await saveState();
+  renderHistory();
+  try{
+    await runAnalysisPipeline(docRecord, docRecord.text);
+    docRecord.error = null;
+    await saveState();
+    toast(docRecord.warning ? 'Re-analysis mostly complete — see details in History.' : 'Re-analysis complete.');
+  }catch(err){
+    docRecord.status = 'failed';
+    docRecord.error = err.message;
+    await saveState();
+    toast('Analysis failed again: ' + err.message);
+  }
+  renderHistory();
+  renderDashboard();
+}
+
+/* =====================================================================
+   DASHBOARD
+===================================================================== */
+function renderDashboard(){
+  const docs = STATE.documents.slice(0,5);
+  const docsEl = document.getElementById('dashDocs');
+  docsEl.innerHTML = docs.length ? docs.map(d=>`
+    <div class="doc-row">
+      <div><div class="doc-name">${escapeHtml(d.name)}</div><div class="doc-meta">${new Date(d.uploadedAt).toLocaleDateString()}</div></div>
+      <span class="status-chip status-${d.status}">${d.status}</span>
+    </div>`).join('') : '<div class="empty" style="padding:20px 0;">No documents yet.</div>';
+
+  const insightsEl = document.getElementById('dashInsights');
+  const insights = buildInsights();
+  insightsEl.innerHTML = insights.length ? insights.map(i=>`<div class="insight-item"><div class="insight-dot"></div>${escapeHtml(i)}</div>`).join('') : '<div class="empty" style="padding:20px 0;">Upload a document or build a budget to see insights.</div>';
+
+  const chatsEl = document.getElementById('dashChats');
+  const chatDocs = Object.keys(STATE.chats).slice(0,3);
+  chatsEl.innerHTML = chatDocs.length ? chatDocs.map(id=>{
+    const doc = STATE.documents.find(d=>d.id===id);
+    const msgs = STATE.chats[id];
+    const last = msgs[msgs.length-1];
+    return `<div class="doc-row"><div><div class="doc-name">${doc?escapeHtml(doc.name):'Document'}</div><div class="doc-meta">${last?escapeHtml(last.content.slice(0,70)):''}</div></div><button class="btn btn-ghost btn-sm" onclick="navigate('chat')">Open</button></div>`;
+  }).join('') : '<div class="empty" style="padding:20px 0;">No chats yet.</div>';
+
+  const latestBudget = STATE.budgets[STATE.budgets.length-1];
+  if(latestBudget && latestBudget.score){
+    document.getElementById('dashScoreNum').textContent = latestBudget.score.score;
+    document.getElementById('dashScoreBadge').style.setProperty('--pct', latestBudget.score.score);
+    document.getElementById('dashScoreTrend').textContent = 'Based on "' + latestBudget.name + '"';
+    document.getElementById('dashRemaining').textContent = fmt$(latestBudget.remaining);
+  } else {
+    document.getElementById('dashScoreNum').textContent = '—';
+    document.getElementById('dashScoreBadge').style.setProperty('--pct', 0);
+    document.getElementById('dashScoreTrend').textContent = 'No budget yet';
+    document.getElementById('dashRemaining').textContent = '$0';
+  }
+}
+function buildInsights(){
+  const out = [];
+  STATE.documents.filter(d=>d.status==='analyzed').forEach(d=>{
+    if(d.analysis && d.analysis.risks && d.analysis.risks.length){
+      out.push(`"${d.name}" has ${d.analysis.risks.length} flagged risk${d.analysis.risks.length>1?'s':''} — review before signing.`);
+    }
+  });
+  const latestBudget = STATE.budgets[STATE.budgets.length-1];
+  if(latestBudget){
+    const housingRatio = latestBudget.expenses.housing / latestBudget.income;
+    if(housingRatio > 0.3) out.push(`Your housing cost is ${(housingRatio*100).toFixed(0)}% of income — above the recommended 30% threshold.`);
+    if(latestBudget.remaining < 0) out.push('Your current budget runs a deficit each month — consider revisiting expenses.');
+  }
+  return out.slice(0,6);
+}
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* =====================================================================
+   ANALYSIS VIEW
+===================================================================== */
+function renderAnalysis(){
+  const analyzed = STATE.documents.filter(d=>d.status==='analyzed');
+  const sel = document.getElementById('analysisDocSelect');
+  const prevVal = sel.value;
+  sel.innerHTML = analyzed.map(d=>`<option value="${d.id}">${escapeHtml(d.name)}</option>`).join('');
+  if(!analyzed.length){
+    document.getElementById('analysisEmpty').style.display='block';
+    document.getElementById('analysisLayout').style.display='none';
+    document.querySelector('.doc-select').style.display='none';
+    return;
+  }
+  document.querySelector('.doc-select').style.display='block';
+  document.getElementById('analysisEmpty').style.display='none';
+  document.getElementById('analysisLayout').style.display='grid';
+  if(prevVal && analyzed.find(d=>d.id===prevVal)) sel.value = prevVal;
+
+  const doc = analyzed.find(d=>d.id===sel.value) || analyzed[0];
+  sel.value = doc.id;
+  const a = doc.analysis || {};
+
+  const sections = [
+    {key:'summary', title:'Plain English Summary', open:true, render: ()=>`<p>${escapeHtml(a.summary||'—')}</p>`},
+    {key:'clauses', title:'Important Clauses', count:(a.clauses||[]).length, render: ()=> (a.clauses||[]).map(c=>`<div class="margin-note"><span class="clause-ref">${escapeHtml(c.reference||'')}</span><div><b>${escapeHtml(c.title||'')}</b><div>${escapeHtml(c.plain_text||'')}</div></div></div>`).join('') || '<p>None identified.</p>'},
+    {key:'obligations', title:'User Obligations', count:(a.obligations||[]).length, render: ()=> (a.obligations||[]).map(o=>`<div class="margin-note"><span class="margin-tag">Do</span><div>${escapeHtml(o)}</div></div>`).join('') || '<p>None identified.</p>'},
+    {key:'risks', title:'Hidden Risks', count:(a.risks||[]).length, render: ()=> (a.risks||[]).length ? a.risks.map(r=>`<div class="margin-note risk"><span class="margin-tag">${escapeHtml(r.severity||'risk')}</span><div><span class="clause-ref">${escapeHtml(r.clause_ref||'')}</span><div>${escapeHtml(r.risk_description||'')}</div></div></div>`).join('') : '<p>No significant risks detected.</p>'},
+    {key:'deadlines', title:'Deadlines', count:(a.deadlines||[]).length, render: ()=> (a.deadlines||[]).map(d=>`<div class="margin-note"><span class="margin-tag">Date</span><div>${escapeHtml(d.description||'')} — <b>${escapeHtml(d.date_or_offset||'')}</b></div></div>`).join('') || '<p>None identified.</p>'},
+    {key:'penalties', title:'Penalties', count:(a.penalties||[]).length, render: ()=> (a.penalties||[]).map(p=>`<div class="margin-note penalty"><span class="margin-tag">Fee</span><div>${escapeHtml(p.trigger||'')} → <b>${escapeHtml(p.amount_or_terms||'')}</b></div></div>`).join('') || '<p>None identified.</p>'},
+    {key:'key_takeaways', title:'Key Takeaways', count:(a.key_takeaways||[]).length, render: ()=> '<ul style="padding-left:18px;">' + (a.key_takeaways||[]).map(k=>`<li style="margin-bottom:6px;">${escapeHtml(k)}</li>`).join('') + '</ul>'},
+  ];
+  document.getElementById('analysisCards').innerHTML = sections.map(s=>`
+    <div class="expand-card ${s.open?'open':''}" id="card-${s.key}">
+      <div class="expand-head" onclick="toggleCard('${s.key}')">
+        <div class="expand-head-left"><span class="expand-title">${s.title}</span>${s.count!==undefined?`<span class="expand-count">${s.count}</span>`:''}</div>
+        <svg class="chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+      </div>
+      <div class="expand-body"><div class="expand-body-inner">${s.render()}</div></div>
+    </div>
+  `).join('');
+
+  const finRows = doc.financials || [];
+  document.getElementById('finTable').innerHTML = `
+    <tr><th>Field</th><th>Value</th><th>Confidence</th></tr>
+    ${finRows.map(f=>`<tr><td class="field">${FIELD_LABELS[f.field_name]||f.field_name}</td><td>${formatFinValue(f.field_name, f.value) || '—'}</td><td><span class="confidence conf-${f.confidence}">${f.confidence.replace('_',' ')}</span></td></tr>`).join('')}
+  `;
+  window._currentAnalysisDocId = doc.id;
+}
+function toggleCard(key){ document.getElementById('card-'+key).classList.toggle('open'); }
+function sendToBudget(){
+  const doc = STATE.documents.find(d=>d.id===window._currentAnalysisDocId);
+  if(!doc) return;
+  const get = f => { const row=(doc.financials||[]).find(x=>x.field_name===f); return row && row.value!=null ? row.value : null; };
+  const rent = get('rent') || get('emi');
+  const salary = get('salary');
+  if(rent) document.getElementById('expHousing').value = rent;
+  if(salary) document.getElementById('incIncome').value = salary;
+  navigate('finance');
+  recalcBudget();
+  toast('Extracted figures applied to your budget.');
+}
+
+/* =====================================================================
+   FINANCE: budget + score + simulator
+===================================================================== */
+let spendChartInstance = null;
+function currentBudgetInputs(){
+  return {
+    income: Number(document.getElementById('incIncome').value)||0,
+    housing: Number(document.getElementById('expHousing').value)||0,
+    debt: Number(document.getElementById('expDebt').value)||0,
+    living: Number(document.getElementById('expLiving').value)||0,
+    other: Number(document.getElementById('expOther').value)||0,
+    savingsGoal: Number(document.getElementById('savingsGoal').value)||0,
+    emergencyFund: Number(document.getElementById('emergencyFund').value)||0,
+  };
+}
+function computeScore(inputs){
+  const totalExpenses = inputs.housing + inputs.debt + inputs.living + inputs.other;
+  const remaining = inputs.income - totalExpenses;
+  const savingsRate = inputs.income>0 ? Math.max(0,(remaining)/inputs.income) : 0;
+  const debtRatio = inputs.income>0 ? inputs.debt/inputs.income : 1;
+  const expenseRatio = inputs.income>0 ? totalExpenses/inputs.income : 1;
+  const emergencyMonths = totalExpenses>0 ? inputs.emergencyFund/totalExpenses : 0;
+
+  const incomeStability = inputs.income>0 ? Math.min(100, 60 + Math.min(40, inputs.income/100)) : 0;
+  const savingsScore = Math.min(100, savingsRate*250);
+  const debtScore = Math.max(0, 100 - debtRatio*300);
+  const expenseScore = Math.max(0, 100 - Math.max(0,(expenseRatio-0.5))*200);
+  const emergencyScore = Math.min(100, emergencyMonths/6*100);
+
+  const overall = Math.round(incomeStability*0.15 + savingsScore*0.25 + debtScore*0.2 + expenseScore*0.2 + emergencyScore*0.2);
+  return { score: Math.max(0,Math.min(100,overall)), remaining, savingsRate, sub:{incomeStability:Math.round(incomeStability), savingsScore:Math.round(savingsScore), debtScore:Math.round(debtScore), expenseScore:Math.round(expenseScore), emergencyScore:Math.round(emergencyScore)} };
+}
+function recalcBudget(){
+  const inputs = currentBudgetInputs();
+  const result = computeScore(inputs);
+  document.getElementById('remainBalance').textContent = fmt$(result.remaining);
+  document.getElementById('savingsRate').textContent = Math.round(result.savingsRate*100) + '%';
+  document.getElementById('financeScoreNum').textContent = result.score;
+  document.getElementById('financeScoreBadge').style.setProperty('--pct', result.score);
+  renderSubfactors(result.sub);
+  drawSpendChart(inputs);
+  return { inputs, result };
+}
+function renderSubfactors(sub){
+  const items = [
+    {label:'Income Stability', val:sub.incomeStability},
+    {label:'Savings Rate', val:sub.savingsScore},
+    {label:'Debt Ratio', val:sub.debtScore},
+    {label:'Expense Ratio', val:sub.expenseScore},
+    {label:'Emergency Fund', val:sub.emergencyScore},
+  ];
+  document.getElementById('subfactors').innerHTML = items.map(i=>`
+    <div class="subfactor"><div class="subfactor-top"><span>${i.label}</span><span>${i.val}</span></div><div class="bar-track"><div class="bar-fill" style="width:${i.val}%;"></div></div></div>
+  `).join('');
+}
+function drawSpendChart(inputs){
+  const ctx = document.getElementById('spendChart');
+  if(!ctx) return;
+  const data = [inputs.housing, inputs.debt, inputs.living, inputs.other, Math.max(0,inputs.income-inputs.housing-inputs.debt-inputs.living-inputs.other)];
+  if(spendChartInstance) spendChartInstance.destroy();
+  spendChartInstance = new Chart(ctx, {
+    type:'doughnut',
+    data:{ labels:['Housing','Debt','Living','Other','Remaining'], datasets:[{ data, backgroundColor:['#16293D','#C8793B','#2E86AB','#5B6B79','#1F8A70'], borderWidth:0 }] },
+    options:{ plugins:{ legend:{ position:'bottom', labels:{ boxWidth:10, font:{size:11} } } }, cutout:'62%' }
+  });
+}
+async function saveBudget(){
+  const {inputs, result} = recalcBudget();
+  const name = 'Budget ' + new Date().toLocaleDateString();
+  let recos = [];
+  try{
+    const rec = await callClaude(
+      "Given the user's monthly income, expenses by category, and savings goal below, write like a friendly, encouraging budgeting coach — plain language, supportive, never judgmental. Return ONLY a JSON object with keys: savings_suggestions (array of up to 5 short, specific, actionable, friendly strings) and risk_flags (array of short, gently-worded strings noting any category exceeding recommended thresholds). Do not give investment or tax advice.",
+      `income=${inputs.income}, expenses=${JSON.stringify({housing:inputs.housing, debt:inputs.debt, living:inputs.living, other:inputs.other})}, savings_goal=${inputs.savingsGoal}`,
+      {json:true}
+    );
+    recos = [...(rec.savings_suggestions||[]), ...(rec.risk_flags||[])];
+  }catch(e){ recos = ['Could not reach the AI recommendation service — showing budget numbers only.']; }
+
+  const budget = {
+    id: uid(), name, income: inputs.income, expenses:{housing:inputs.housing, debt:inputs.debt, living:inputs.living, other:inputs.other},
+    savingsGoal: inputs.savingsGoal, remaining: result.remaining,
+    score: { score: result.score, sub: result.sub, recommendations: recos },
+    createdAt: new Date().toISOString()
+  };
+  STATE.budgets.push(budget);
+  await saveState();
+  document.getElementById('scoreRecos').innerHTML = recos.map(r=>`<div class="reco-item">${escapeHtml(r)}</div>`).join('');
+  toast('Budget saved and health score updated.');
+  renderDashboard();
+}
+let financeInputsInitialized = false;
+function renderFinance(){
+  const latest = STATE.budgets[STATE.budgets.length-1];
+  if(!financeInputsInitialized && latest){
+    document.getElementById('incIncome').value = latest.income;
+    document.getElementById('expHousing').value = latest.expenses.housing;
+    document.getElementById('expDebt').value = latest.expenses.debt;
+    document.getElementById('expLiving').value = latest.expenses.living;
+    document.getElementById('expOther').value = latest.expenses.other;
+    document.getElementById('savingsGoal').value = latest.savingsGoal || 0;
+    financeInputsInitialized = true;
+  }
+  recalcBudget();
+  document.getElementById('scoreRecos').innerHTML = latest ? (latest.score.recommendations||[]).map(r=>`<div class="reco-item">${escapeHtml(r)}</div>`).join('') : '<div style="color:var(--slate); font-size:13px;">Save a budget to get AI recommendations.</div>';
+  const inputs = currentBudgetInputs();
+  document.getElementById('simRent').value = inputs.housing; document.getElementById('simRentVal').textContent = fmt$(inputs.housing);
+  document.getElementById('simSalary').value = inputs.income; document.getElementById('simSalaryVal').textContent = fmt$(inputs.income);
+  const otherTotal = inputs.debt+inputs.living+inputs.other;
+  document.getElementById('simExp').value = otherTotal; document.getElementById('simExpVal').textContent = fmt$(otherTotal);
+  expandSliderIfNeeded('simRent', inputs.housing);
+  expandSliderIfNeeded('simSalary', inputs.income);
+  expandSliderIfNeeded('simExp', otherTotal);
+  runSimulator();
+}
+function expandSliderIfNeeded(id, value){
+  const el = document.getElementById(id);
+  if(value > Number(el.max)) el.max = Math.ceil(value * 1.5 / 500) * 500; // give headroom above the real value
+}
+function runSimulator(){
+  const rent = Number(document.getElementById('simRent').value);
+  const salary = Number(document.getElementById('simSalary').value);
+  const otherExp = Number(document.getElementById('simExp').value);
+  document.getElementById('simRentVal').textContent = fmt$(rent);
+  document.getElementById('simSalaryVal').textContent = fmt$(salary);
+  document.getElementById('simExpVal').textContent = fmt$(otherExp);
+  const inputs = { income:salary, housing:rent, debt:0, living:otherExp, other:0, savingsGoal:0, emergencyFund: Number(document.getElementById('emergencyFund').value)||0 };
+  const result = computeScore(inputs);
+  document.getElementById('simRemain').textContent = fmt$(result.remaining);
+  document.getElementById('simScore').textContent = result.score;
+  document.getElementById('simEmergencyRef').textContent = fmt$(inputs.emergencyFund);
+  window._simSnapshot = {inputs, result};
+}
+async function saveSimAsBudget(){
+  const snap = window._simSnapshot;
+  if(!snap) return;
+  const budget = {
+    id: uid(), name: 'Simulated — ' + new Date().toLocaleTimeString(),
+    income: snap.inputs.income, expenses:{housing:snap.inputs.housing, debt:0, living:snap.inputs.living, other:0},
+    savingsGoal:0, remaining: snap.result.remaining,
+    score: { score: snap.result.score, sub: snap.result.sub, recommendations: ['Saved from Financial Simulator.'] },
+    createdAt: new Date().toISOString()
+  };
+  STATE.budgets.push(budget);
+  await saveState();
+  toast('Scenario saved as a new budget.');
+  renderDashboard();
+}
+
+async function getInvestmentAdvice(){
+  const latestBudget = STATE.budgets[STATE.budgets.length-1];
+  const inputs = currentBudgetInputs();
+  const risk = document.getElementById('riskTolerance').value;
+  const horizon = document.getElementById('investHorizon').value;
+  const btn = document.getElementById('adviceBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner dark"></span>';
+
+  const totalExpenses = inputs.housing + inputs.debt + inputs.living + inputs.other;
+  const remaining = inputs.income - totalExpenses;
+  const emergencyMonths = totalExpenses>0 ? (inputs.emergencyFund/totalExpenses).toFixed(1) : 0;
+
+  try{
+    const advice = await callClaude(
+      "You are FinClause's financial strategy assistant. Write like a warm, friendly, encouraging financial coach talking to a friend — not a stiff corporate advisor. Use plain, conversational language, contractions, and a supportive tone (e.g. 'you're already doing something great by...', 'one easy win here could be...'). Keep it real and specific to their numbers, but never preachy or judgmental about their spending. This is GENERAL, EDUCATIONAL guidance, not personalized licensed financial advice — never name specific stocks, tickers, funds, or companies to buy, and never promise returns. Always account for their debt and emergency fund status before suggesting investing. Return ONLY a JSON object with keys: budget_strategy (array of 3-5 short, friendly, encouraging strings on how to allocate their income and prioritize debt vs. savings), investment_ideas (array of 3-5 short, friendly strings explaining general investment concepts/vehicle categories appropriate to their stated risk tolerance and time horizon, e.g. high-yield savings, diversified index funds, retirement accounts, bonds — described generically and approachably, not as specific products), action_steps (array of 3-5 short, concrete, encouraging, sequenced next steps written like helpful tips from a friend).",
+      `Monthly income: $${inputs.income}\nMonthly expenses: housing $${inputs.housing}, debt payments $${inputs.debt}, living $${inputs.living}, other $${inputs.other}\nRemaining balance: $${remaining}\nSavings goal: $${inputs.savingsGoal}/month\nEmergency fund: $${inputs.emergencyFund} (approx ${emergencyMonths} months of expenses)\nRisk tolerance: ${risk}\nInvesting time horizon: ${horizon}\nCurrent Financial Health Score: ${latestBudget ? latestBudget.score.score : 'not yet calculated'}`,
+      { json:true, maxTokens:1500 }
+    );
+    document.getElementById('adviceBudget').innerHTML = (advice.budget_strategy||[]).map(s=>`<div class="reco-item">${escapeHtml(s)}</div>`).join('') || '<div style="color:var(--slate); font-size:13px;">No strategy points returned.</div>';
+    document.getElementById('adviceInvest').innerHTML = (advice.investment_ideas||[]).map(s=>`<div class="reco-item">${escapeHtml(s)}</div>`).join('') || '<div style="color:var(--slate); font-size:13px;">No investment concepts returned.</div>';
+    document.getElementById('adviceSteps').innerHTML = (advice.action_steps||[]).map((s,i)=>`<div class="reco-item"><b>${i+1}.</b> ${escapeHtml(s)}</div>`).join('') || '<div style="color:var(--slate); font-size:13px;">No action steps returned.</div>';
+    document.getElementById('adviceOutput').style.display = 'block';
+  }catch(err){
+    toast('Could not generate advisor guidance: ' + err.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Get advisor guidance';
+  }
+}
+
+/* =====================================================================
+   CHAT
+===================================================================== */
+let chatSending = false;
+function renderChat(){
+  const analyzed = STATE.documents.filter(d=>d.status==='analyzed');
+  const listEl = document.getElementById('chatDocList');
+  if(!analyzed.length){
+    listEl.innerHTML = '<div style="font-size:12.5px; color:var(--slate);">No analyzed documents yet.</div>';
+    document.getElementById('chatMsgs').innerHTML = '<div class="empty">Upload and analyze a document to start chatting.</div>';
+    document.getElementById('chatPrompts').innerHTML = '';
+    return;
+  }
+  if(!activeChatDocId || !analyzed.find(d=>d.id===activeChatDocId)) activeChatDocId = analyzed[0].id;
+  listEl.innerHTML = analyzed.map(d=>`<div class="chat-doc-item ${d.id===activeChatDocId?'active':''}" onclick="selectChatDoc('${d.id}')">${escapeHtml(d.name)}</div>`).join('');
+  renderChatMsgs();
+  document.getElementById('chatPrompts').innerHTML = ['Explain the riskiest clause','Is this agreement risky?','What happens if I miss a payment?','Can I terminate this contract?'].map(p=>`<button class="chip" onclick="quickPrompt('${p.replace(/'/g,"\\'")}')" ${chatSending?'disabled':''}>${p}</button>`).join('');
+}
+function selectChatDoc(id){ activeChatDocId = id; renderChat(); }
+function quickPrompt(text){
+  if(chatSending) return; // ignore taps while a request is already in flight
+  document.getElementById('chatInput').value = text;
+  sendChat();
+}
+function renderChatMsgs(){
+  const msgs = STATE.chats[activeChatDocId] || [];
+  const el = document.getElementById('chatMsgs');
+  el.innerHTML = msgs.length ? msgs.map(m=>`<div class="msg ${m.role}">${escapeHtml(m.content)}${m.citation?`<div class="msg-cite">📎 ${escapeHtml(m.citation)}</div>`:''}</div>`).join('') : '<div class="empty">Ask a question below to get started.</div>';
+  el.scrollTop = el.scrollHeight;
+}
+async function sendChat(){
+  if(chatSending) return; // block overlapping requests (e.g. rapid Enter presses)
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if(!text || !activeChatDocId) return;
+
+  const targetDocId = activeChatDocId; // pin the document this question belongs to
+  const doc = STATE.documents.find(d=>d.id===targetDocId);
+  if(!STATE.chats[targetDocId]) STATE.chats[targetDocId] = [];
+  STATE.chats[targetDocId].push({ role:'user', content:text, ts:Date.now() });
+  input.value = '';
+  if(targetDocId === activeChatDocId) renderChatMsgs();
+  await saveState();
+
+  chatSending = true;
+  const btn = document.getElementById('chatSendBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
+  input.disabled = true;
+  document.querySelectorAll('#chatPrompts .chip').forEach(c=>c.disabled = true);
+
+  if(targetDocId === activeChatDocId){
+    const el = document.getElementById('chatMsgs');
+    el.innerHTML += '<div class="msg assistant" id="typingMsg"><span class="spinner dark"></span></div>';
+    el.scrollTop = el.scrollHeight;
+  }
+
+  try{
+    const raw = await callClaude(
+      "You are FinClause's assistant. Answer the user's question using ONLY the document context provided below. If the answer is not present in the context, say so explicitly rather than guessing. When your answer relies on a specific clause, cite it by reference (e.g. 'Clause 7 - Termination') on a new line starting with 'CITATION:'. Keep answers concise and in plain English.",
+      `CONTEXT:\n${(doc.text||'').slice(0,12000)}\n\nQUESTION: ${text}`
+    );
+    let content = raw, citation = null;
+    const citeMatch = raw.match(/CITATION:\s*(.+)$/m);
+    if(citeMatch){ citation = citeMatch[1].trim(); content = raw.replace(/CITATION:\s*.+$/m,'').trim(); }
+    STATE.chats[targetDocId].push({ role:'assistant', content, citation, ts:Date.now() });
+  }catch(err){
+    STATE.chats[targetDocId].push({ role:'assistant', content: "I couldn't reach the AI service just now: " + err.message, ts:Date.now() });
+  }
+  await saveState();
+
+  chatSending = false;
+  btn.disabled = false; btn.textContent = 'Send';
+  input.disabled = false;
+  document.querySelectorAll('#chatPrompts .chip').forEach(c=>c.disabled = false);
+
+  // Only repaint the chat thread if the user is still looking at the same document —
+  // otherwise this reply would land in the wrong conversation on screen.
+  if(targetDocId === activeChatDocId){ renderChatMsgs(); }
+  else { toast('New reply ready in "' + (doc ? doc.name : 'a document') + '".'); }
+  renderDashboard();
+}
+
+/* =====================================================================
+   HISTORY
+===================================================================== */
+function setHistoryTab(tab){
+  historyTab = tab;
+  document.querySelectorAll('.htab').forEach(t=>t.classList.toggle('active', t.dataset.tab===tab));
+  renderHistory();
+}
+function renderHistory(){
+  const body = document.getElementById('historyBody');
+  if(historyTab==='docs'){
+    body.innerHTML = STATE.documents.length ? STATE.documents.map(d=>`
+      <div class="hrow" style="align-items:flex-start;"><div>
+        <div class="doc-name">${escapeHtml(d.name)}</div>
+        <div class="doc-meta">${new Date(d.uploadedAt).toLocaleString()} · ${d.fileType.toUpperCase()}</div>
+        ${d.status==='failed' && d.error ? `<div style="font-size:12px; color:var(--danger); margin-top:4px; max-width:420px;">${escapeHtml(d.error)}</div>` : ''}
+        ${d.status==='analyzed' && d.warning ? `<div style="font-size:12px; color:var(--amber); margin-top:4px; max-width:420px;">${escapeHtml(d.warning)}</div>` : ''}
+      </div>
+      <div style="display:flex; gap:8px; align-items:center; flex-shrink:0;">
+        <span class="status-chip status-${d.status}">${d.status}</span>
+        ${d.status==='analyzed'?`<button class="btn btn-ghost btn-sm" onclick="navigate('analysis')">View</button>`:''}
+        ${d.status==='failed'?`<button class="btn btn-primary btn-sm" onclick="retryAnalysis('${d.id}')">Retry</button>`:''}
+      </div></div>
+    `).join('') : '<div class="empty">No documents yet.</div>';
+  } else if(historyTab==='budgets'){
+    body.innerHTML = STATE.budgets.length ? STATE.budgets.slice().reverse().map(b=>`
+      <div class="hrow"><div><div class="doc-name">${escapeHtml(b.name)}</div><div class="doc-meta">Income ${fmt$(b.income)} · Remaining ${fmt$(b.remaining)}</div></div>
+      <div style="display:flex; gap:8px; align-items:center;"><span class="status-chip status-analyzed">Score ${b.score.score}</span></div></div>
+    `).join('') : '<div class="empty">No budgets yet.</div>';
+  } else if(historyTab==='chats'){
+    const ids = Object.keys(STATE.chats);
+    body.innerHTML = ids.length ? ids.map(id=>{
+      const doc = STATE.documents.find(d=>d.id===id);
+      const msgs = STATE.chats[id];
+      return `<div class="hrow"><div><div class="doc-name">${doc?escapeHtml(doc.name):'Document'}</div><div class="doc-meta">${msgs.length} messages</div></div><button class="btn btn-ghost btn-sm" onclick="navigate('chat')">Open</button></div>`;
+    }).join('') : '<div class="empty">No chats yet.</div>';
+  } else if(historyTab==='reports'){
+    body.innerHTML = renderReportsTab();
+  }
+}
+function renderReportsTab(){
+  const analyzed = STATE.documents.filter(d=>d.status==='analyzed');
+  let html = '';
+  if(analyzed.length){
+    html += `<div style="margin-bottom:18px;"><label>Generate a new report for</label><select id="reportDocSelect">${analyzed.map(d=>`<option value="${d.id}">${escapeHtml(d.name)}</option>`).join('')}</select></div>`;
+    html += `<div style="margin-bottom:16px;">
+      <div class="report-check"><input type="checkbox" checked data-sec="summary"/> Document Summary</div>
+      <div class="report-check"><input type="checkbox" checked data-sec="financials"/> Financial Analysis</div>
+      <div class="report-check"><input type="checkbox" checked data-sec="risks"/> Risk Assessment</div>
+      <div class="report-check"><input type="checkbox" checked data-sec="budget"/> Budget Plan</div>
+      <div class="report-check"><input type="checkbox" checked data-sec="recommendations"/> AI Recommendations</div>
+    </div>
+    <button class="btn btn-primary" onclick="generateReport()">Generate report</button>`;
+  } else {
+    html += '<div class="empty">Analyze a document first to generate a report.</div>';
+  }
+  html += '<div style="margin-top:24px; border-top:1px solid var(--line); padding-top:16px;">' + (STATE.reports.length ? STATE.reports.slice().reverse().map(r=>`
+    <div class="hrow"><div><div class="doc-name">${escapeHtml(r.docName)}</div><div class="doc-meta">${new Date(r.generatedAt).toLocaleString()}</div></div><button class="btn btn-ghost btn-sm" onclick="downloadReport('${r.id}')">Download</button></div>
+  `).join('') : '<div class="empty">No reports generated yet.</div>') + '</div>';
+  return html;
+}
+async function generateReport(){
+  const docId = document.getElementById('reportDocSelect').value;
+  const doc = STATE.documents.find(d=>d.id===docId);
+  const sections = Array.from(document.querySelectorAll('[data-sec]')).filter(c=>c.checked).map(c=>c.dataset.sec);
+  const budget = STATE.budgets[STATE.budgets.length-1];
+  const a = doc.analysis || {};
+
+  let out = `FINCLAUSE REPORT\n${doc.name}\nGenerated ${new Date().toLocaleString()}\n${'='.repeat(50)}\n\n`;
+  if(sections.includes('summary')) out += `DOCUMENT SUMMARY\n${a.summary||'—'}\n\n`;
+  if(sections.includes('financials')) out += `FINANCIAL ANALYSIS\n` + (doc.financials||[]).map(f=>`${FIELD_LABELS[f.field_name]||f.field_name}: ${formatFinValue(f.field_name, f.value) || 'Not found'} (${f.confidence})`).join('\n') + '\n\n';
+  if(sections.includes('risks')) out += `RISK ASSESSMENT\n` + ((a.risks||[]).length ? a.risks.map(r=>`[${r.severity}] ${r.clause_ref}: ${r.risk_description}`).join('\n') : 'No significant risks detected.') + '\n\n';
+  if(sections.includes('budget') && budget) out += `BUDGET PLAN\nIncome: ${fmt$(budget.income)}\nHousing: ${fmt$(budget.expenses.housing)}\nDebt: ${fmt$(budget.expenses.debt)}\nLiving: ${fmt$(budget.expenses.living)}\nOther: ${fmt$(budget.expenses.other)}\nRemaining: ${fmt$(budget.remaining)}\nFinancial Health Score: ${budget.score.score}/100\n\n`;
+  if(sections.includes('recommendations') && budget) out += `AI RECOMMENDATIONS\n` + (budget.score.recommendations||[]).map(r=>'- '+r).join('\n') + '\n\n';
+
+  const reportId = uid();
+  STATE.reports.push({ id:reportId, docName:doc.name, generatedAt:new Date().toISOString(), content:out });
+  await saveState();
+  toast('Report generated.');
+  renderHistory();
+}
+function downloadReport(id){
+  const r = STATE.reports.find(x=>x.id===id);
+  if(!r) return;
+  const blob = new Blob([r.content], {type:'text/plain'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = r.docName.replace(/[^a-z0-9]/gi,'_') + '_FinClause_Report.txt';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>
