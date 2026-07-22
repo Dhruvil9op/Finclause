@@ -1,0 +1,18 @@
+{
+  "name": "finclause",
+  "version": "1.0.0",
+  "description": "FinClause - AI-powered legal document simplifier and personal finance planner (runs on the free Google Gemini API)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2"
+  }
+}

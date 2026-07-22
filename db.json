@@ -1,0 +1,269 @@
+{
+  "users": {},
+  "state": {
+    "dhruvilmangroliya@gmail.com": {
+      "documents": [
+        {
+          "id": "y6bdvpphmrt1zdqr",
+          "name": "Auto_Loan_Agreement_1",
+          "status": "analyzed",
+          "uploadedAt": "2026-07-20T09:59:42.675Z",
+          "fileType": "txt",
+          "text": "AUTO LOAN AGREEMENT\n\nLender: Meridian Auto Finance LLC\nBorrower: Jordan T. Reyes\nDate: July 20, 2026\n\n1. LOAN AMOUNT\nThe Lender agrees to loan the Borrower the principal sum of $24,500.00 for the\npurchase of a 2024 Toyota Camry (VIN: 4T1G11AK5PU123456).\n\n2. INTEREST RATE\nThe Annual Percentage Rate (APR) for this loan is 6.75%, fixed for the full term.\n\n3. LOAN TERM\nThe loan term is 60 months (5 years), beginning August 1, 2026 and ending\nJuly 1, 2031.\n\n4. MONTHLY PAYMENT\nThe Borrower shall pay $482.17 per month, due on the 1st of each month.\nTotal of payments over the loan term: $28,930.20.\n\n5. LATE FEES\nA late fee of $25.00 or 5% of the overdue payment (whichever is greater) will\nbe charged if payment is not received within 10 days of the due date.\n\n6. PREPAYMENT\nThe Borrower may prepay all or part of the loan at any time without penalty.\n\n7. DEFAULT\nIf the Borrower fails to make three (3) consecutive monthly payments, the\nLender may declare the entire remaining balance immediately due and may\nrepossess the vehicle in accordance with state law.\n\n8. INSURANCE REQUIREMENT\nThe Borrower must maintain comprehensive and collision insurance on the\nvehicle for the full term of the loan, naming the Lender as lienholder.\n\n9. GOVERNING LAW\nThis Agreement is governed by the laws of the State of Ohio.\n\nSigned:\nJordan T. Reyes (Borrower)\nMeridian Auto Finance LLC (Lender)",
+          "analysis": {
+            "summary": "This is a 60-month auto loan agreement between Meridian Auto Finance LLC (Lender) and Jordan T. Reyes (Borrower) for $24,500.00 to purchase a 2024 Toyota Camry. The loan carries a fixed Annual Percentage Rate (APR) of 6.75%, requiring monthly payments of $482.17 starting August 1, 2026. The Borrower must maintain comprehensive and collision insurance on the vehicle and can prepay the loan without penalty. Late payments incur fees after a 10-day grace period, and failing to make three consecutive payments constitutes a default, allowing the Lender to demand full repayment and repossess the vehicle.",
+            "clauses": [
+              {
+                "reference": "1",
+                "title": "Loan Amount",
+                "plain_text": "The Lender is providing a loan of $24,500.00 to the Borrower to buy a 2024 Toyota Camry."
+              },
+              {
+                "reference": "2",
+                "title": "Interest Rate",
+                "plain_text": "The loan has a fixed annual interest rate of 6.75% that will not change."
+              },
+              {
+                "reference": "3",
+                "title": "Loan Term",
+                "plain_text": "The loan lasts for 60 months, starting on August 1, 2026, and ending on July 1, 2031."
+              },
+              {
+                "reference": "4",
+                "title": "Monthly Payment",
+                "plain_text": "The Borrower must pay $482.17 on the first day of every month, totaling $28,930.20 over the term."
+              },
+              {
+                "reference": "5",
+                "title": "Late Fees",
+                "plain_text": "A late fee applies if a monthly payment is not received within 10 days of its due date."
+              },
+              {
+                "reference": "6",
+                "title": "Prepayment",
+                "plain_text": "The Borrower can pay off the loan early, in whole or in part, without paying any extra fees."
+              },
+              {
+                "reference": "7",
+                "title": "Default",
+                "plain_text": "Missing three consecutive monthly payments allows the Lender to demand immediate full payment and repossess the car."
+              },
+              {
+                "reference": "8",
+                "title": "Insurance Requirement",
+                "plain_text": "The Borrower must keep full comprehensive and collision insurance on the car and list the Lender as the lienholder."
+              },
+              {
+                "reference": "9",
+                "title": "Governing Law",
+                "plain_text": "This loan agreement is regulated by the laws of the State of Ohio."
+              }
+            ],
+            "obligations": [
+              "Borrower must pay $482.17 on the 1st of each month starting August 1, 2026.",
+              "Borrower must maintain comprehensive and collision insurance on the vehicle for the entire 60-month term.",
+              "Borrower must list Meridian Auto Finance LLC as the lienholder on the vehicle's insurance policy."
+            ],
+            "risks": [
+              {
+                "clause_ref": "7",
+                "risk_description": "If you miss three consecutive payments, you could lose your car to repossession and be forced to pay the remaining loan balance immediately.",
+                "severity": "High"
+              },
+              {
+                "clause_ref": "5",
+                "risk_description": "Paying more than 10 days late results in a penalty fee, increasing the overall cost of the loan.",
+                "severity": "Medium"
+              }
+            ],
+            "deadlines": [
+              {
+                "description": "First monthly payment due date",
+                "date_or_offset": "August 1, 2026"
+              },
+              {
+                "description": "Recurring monthly payment due date",
+                "date_or_offset": "The 1st day of each month"
+              },
+              {
+                "description": "Late fee grace period expiration",
+                "date_or_offset": "10 days after the monthly payment due date"
+              },
+              {
+                "description": "Final loan payment due date",
+                "date_or_offset": "July 1, 2031"
+              }
+            ],
+            "penalties": [
+              {
+                "trigger": "Payment not received within 10 days of the due date",
+                "amount_or_terms": "$25.00 or 5% of the overdue payment, whichever is greater"
+              },
+              {
+                "trigger": "Failure to make three consecutive monthly payments (Default)",
+                "amount_or_terms": "Acceleration of the entire remaining loan balance and repossession of the vehicle"
+              }
+            ],
+            "key_takeaways": [
+              "The loan is a fixed-rate agreement of 6.75% APR for 5 years with no prepayment penalties.",
+              "You must keep the car fully insured with comprehensive and collision coverage, naming the lender as lienholder.",
+              "Missing three consecutive payments gives the lender the right to take back the car and demand the full remaining loan balance immediately."
+            ]
+          },
+          "financials": [
+            {
+              "field_name": "salary",
+              "value": null,
+              "confidence": "not_found"
+            },
+            {
+              "field_name": "rent",
+              "value": null,
+              "confidence": "not_found"
+            },
+            {
+              "field_name": "loan_amount",
+              "value": 24500,
+              "confidence": "high"
+            },
+            {
+              "field_name": "emi",
+              "value": 482.17,
+              "confidence": "high"
+            },
+            {
+              "field_name": "interest_rate",
+              "value": 6.75,
+              "confidence": "high"
+            },
+            {
+              "field_name": "deposit",
+              "value": null,
+              "confidence": "not_found"
+            },
+            {
+              "field_name": "bonus",
+              "value": null,
+              "confidence": "not_found"
+            },
+            {
+              "field_name": "taxes",
+              "value": null,
+              "confidence": "not_found"
+            },
+            {
+              "field_name": "penalties",
+              "value": 0,
+              "confidence": "high"
+            },
+            {
+              "field_name": "fees",
+              "value": 25,
+              "confidence": "high"
+            }
+          ],
+          "warning": null
+        }
+      ],
+      "budgets": [
+        {
+          "id": "qb4toh6tmrt21p64",
+          "name": "Budget 7/20/2026",
+          "income": 50000,
+          "expenses": {
+            "housing": 2000,
+            "debt": 400,
+            "living": 1500,
+            "other": 500
+          },
+          "savingsGoal": 20000,
+          "remaining": 45600,
+          "score": {
+            "score": 83,
+            "sub": {
+              "incomeStability": 100,
+              "savingsScore": 100,
+              "debtScore": 98,
+              "expenseScore": 100,
+              "emergencyScore": 15
+            },
+            "recommendations": [
+              "Consider trying a 'no-spend weekend' once a month to keep more of your 'other' expenses in your pocket.",
+              "Look for small ways to trim your daily living costs, like planning meals ahead or brewing your favorite coffee at home.",
+              "If you have any high-interest debt, paying a tiny bit extra each month can save you a lot of money in the long run.",
+              "Automate a small transfer to your savings right on payday so you can build your savings habit effortlessly.",
+              "Review your subscription services to see if there are any monthly memberships you can temporarily pause.",
+              "Your housing costs are a bit high for your current income level, which might make it feel harder to reach your big savings goal.",
+              "Your living expenses are taking up a larger portion of your budget, leaving you with less breathing room each month."
+            ]
+          },
+          "createdAt": "2026-07-20T10:01:30.796Z"
+        },
+        {
+          "id": "4znn6g4kmrt227es",
+          "name": "Budget 7/20/2026",
+          "income": 25000,
+          "expenses": {
+            "housing": 2000,
+            "debt": 400,
+            "living": 1500,
+            "other": 500
+          },
+          "savingsGoal": 20000,
+          "remaining": 20600,
+          "score": {
+            "score": 82,
+            "sub": {
+              "incomeStability": 100,
+              "savingsScore": 100,
+              "debtScore": 95,
+              "expenseScore": 100,
+              "emergencyScore": 15
+            },
+            "recommendations": [
+              "You have an amazing savings capacity! With $20,600 left over each month, you can reach your $20,000 goal in your very first month.",
+              "Consider setting up an automatic transfer of $20,000 to a dedicated savings account right after you get paid to secure your goal instantly.",
+              "Look at your $500 'other' expenses to see if there are any subscription services or memberships you no longer use.",
+              "Since your living expenses are already very reasonable, keeping a simple weekly tracker can help you maintain this excellent momentum."
+            ]
+          },
+          "createdAt": "2026-07-20T10:01:54.436Z"
+        }
+      ],
+      "chats": {
+        "y6bdvpphmrt1zdqr": [
+          {
+            "role": "user",
+            "content": "Explain the riskiest clause",
+            "ts": 1784541608980
+          },
+          {
+            "role": "assistant",
+            "content": "Based on the provided document, the riskiest clause is the \"DEFAULT\" clause. Under this clause, if the Borrower misses three consecutive monthly payments, the Lender has the right to demand the immediate payment of the entire remaining loan balance and repossess the vehicle.",
+            "citation": "Clause 7 - DEFAULT",
+            "ts": 1784541610495
+          },
+          {
+            "role": "user",
+            "content": "Is this agreement risky?",
+            "ts": 1784541612059
+          },
+          {
+            "role": "assistant",
+            "content": "Based on the provided document, there is no mention or evaluation of whether this agreement is \"risky.\"",
+            "citation": "Clause 7 - Default (defines the consequences of failing to make payments, but the document does not explicitly label the agreement as risky).",
+            "ts": 1784541613200
+          }
+        ]
+      },
+      "reports": [
+        {
+          "id": "altrhac4mrt20b0d",
+          "docName": "Auto_Loan_Agreement_1",
+          "generatedAt": "2026-07-20T10:00:25.789Z",
+          "content": "FINCLAUSE REPORT\nAuto_Loan_Agreement_1\nGenerated 7/20/2026, 3:30:25 PM\n==================================================\n\nDOCUMENT SUMMARY\nThis is a 60-month auto loan agreement between Meridian Auto Finance LLC (Lender) and Jordan T. Reyes (Borrower) for $24,500.00 to purchase a 2024 Toyota Camry. The loan carries a fixed Annual Percentage Rate (APR) of 6.75%, requiring monthly payments of $482.17 starting August 1, 2026. The Borrower must maintain comprehensive and collision insurance on the vehicle and can prepay the loan without penalty. Late payments incur fees after a 10-day grace period, and failing to make three consecutive payments constitutes a default, allowing the Lender to demand full repayment and repossess the vehicle.\n\nFINANCIAL ANALYSIS\nSalary: Not found (not_found)\nRent: Not found (not_found)\nLoan Amount: $24,500 (high)\nEMI: $482 (high)\nInterest Rate: 6.75% (high)\nDeposit: Not found (not_found)\nBonus: Not found (not_found)\nTaxes: Not found (not_found)\nPenalties: $0 (high)\nFees: $25 (high)\n\nRISK ASSESSMENT\n[High] 7: If you miss three consecutive payments, you could lose your car to repossession and be forced to pay the remaining loan balance immediately.\n[Medium] 5: Paying more than 10 days late results in a penalty fee, increasing the overall cost of the loan.\n\n"
+        }
+      ]
+    }
+  }
+}
